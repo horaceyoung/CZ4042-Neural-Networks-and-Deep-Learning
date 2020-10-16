@@ -12,7 +12,7 @@ NUM_CLASSES = 7
 
 epochs = 1000
 batch_size = 8
-num_neurons = 30
+num_neurons = 10
 seed = 10
 test_size = 0.3
 
@@ -31,12 +31,13 @@ np.random.shuffle(idx)
 X_data, Y_data = X_data[idx], Y_data[idx]
 
 # Scale the features
-trainX = (X_data- np.mean(X_data, axis=0))/ np.std(X_data, axis=0)
+trainX = X_data
 trainY = Y_data
 
 # Split the data randomly into 7:3 training set and test set
 train_X, test_X, train_Y, test_Y = train_test_split(trainX, trainY, test_size = test_size, random_state=1)
-
+train_X = (train_X - np.mean(train_X, axis=0)) / np.std(train_X, axis=0)
+test_X = (test_X - np.mean(test_X, axis=0)) / np.std(test_X, axis=0)
 
 # create a network
 def create_model():

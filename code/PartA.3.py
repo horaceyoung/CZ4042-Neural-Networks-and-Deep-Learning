@@ -18,8 +18,8 @@ NUM_CLASSES = 3
 
 epochs = 500
 # Change here for testing different batch size
-batch_size = [4,8,16,32,64]
-num_neurons = 10
+batch_size = 8
+num_neurons = [5,10,15,20,25]
 seed = 10
 test_size = 0.3
 
@@ -31,11 +31,12 @@ overall_accuracy = {}
 #read train data
 train_input = np.genfromtxt('ctg_data_cleaned.csv', delimiter= ',')
 trainX, train_Y = train_input[1:, :21], train_input[1:,-1].astype(int)
-trainX = scale(trainX, np.min(trainX, axis=0), np.max(trainX, axis=0))
 trainY = train_Y-1
 
-# Split the data randomly into 7:3 training set and test set
+# Split the data randomly into 7:3 training set and test set and scale the input data
 train_X, test_X, train_Y, test_Y = train_test_split(trainX, trainY, test_size = test_size, random_state=1)
+train_X = scale(train_X, np.min(train_X, axis=0), np.max(train_X, axis=0))
+test_X = scale(test_X, np.min(test_X, axis=0), np.max(test_X, axis=0))
 
 # Create the callback function
 class MetricCallback(keras.callbacks.Callback):
@@ -45,13 +46,13 @@ class MetricCallback(keras.callbacks.Callback):
     def on_epoch_end(self, batch, logs={}):
         self.times.append(time.time() - self.epoch_time_start)
 
-def create_model():
+def create_model(layer_num_neurons):
     # create the model
     model = keras.Sequential()
-    model.add(keras.layers.Dense(num_neurons, input_dim=21, activation='relu',
+    model.add(keras.layers.Dense(layer_num_neurons, input_dim=21, activation='relu',
                                  kernel_initializer='random_normal',
                                  bias_initializer='zeros',
-                                 kernel_regularizer=tf.keras.regularizers.l2(0.01)))
+                                 kernel_regularizer=tf.keras.regularizers.l2(1e-6)))
     model.add(keras.layers.Dense(NUM_CLASSES, activation='softmax',
                                  kernel_initializer='random_normal',
                                  bias_initializer='zeros'
@@ -64,26 +65,26 @@ def create_model():
                   )
     return model
 
-for batch in batch_size:
+for num in num_neurons:
     # Split the data
     n_split = 5
     split_counter = 1
     batch_accuracy = []
     current_time = time.time()
     for train_index, test_index in KFold(n_split).split(train_X):
-        model = create_model()
+        model = create_model(num)
         train_x, test_x = train_X[train_index], train_X[test_index]
         train_y, test_y = train_Y[train_index], train_Y[test_index]
 
         histories['fold_'+str(split_counter)] = model.fit(train_x, train_y,
                                                  epochs=epochs,
                                                  verbose = 2,
-                                                 batch_size=batch)
+                                                 batch_size=batch_size)
         split_counter += 1
 
     # Record the total training time for each batch size
     endtime = time.time() - current_time
-    print("Average time for each epoch for batch size " + str(batch) + " is " + str(endtime/epochs))
+    print("Average time for each epoch for neurons with size " + str(num) + " is " + str(endtime/epochs))
 
     # plot learning accuracy curves for each fold
     plt.figure()
@@ -99,8 +100,8 @@ for batch in batch_size:
     for i in range(1, 6):
         batch_accuracy.append(histories['fold_' + str(i)].history['accuracy'])
     batch_accuracy = np.mean(batch_accuracy, axis=0)
-    overall_accuracy[batch] = batch_accuracy
-    plt.plot(batch_accuracy, label='batch training accuracy')
+    overall_accuracy[num] = batch_accuracy
+    plt.plot(batch_accuracy, label=str(num) + 'neurons training accuracy')
     plt.ylabel('Overall accuracy')
     plt.xlabel('No. epoch')
     plt.legend(loc="lower right")
@@ -108,15 +109,15 @@ for batch in batch_size:
 
 # plot all overall accuracies to compare the best batch size
 plt.figure()
-for batch in batch_size:
-    plt.plot(overall_accuracy[batch], label='training accuracy for batch ' + str(batch))
+for num in num_neurons:
+    plt.plot(overall_accuracy[num], label='training accuracy for neurons ' + str(num))
 plt.ylabel('Overall accuracy')
 plt.xlabel('No. epoch')
 plt.legend(loc="lower right")
 plt.show()
 
 # Plot the train and test accuracies against epochs for the optimal batch size
-model = create_model()
+model = create_model(25)
 histories['optimal'] = model.fit(train_X, train_Y,
                                 epochs=epochs,
                                 verbose = 2,
@@ -129,4 +130,3 @@ plt.ylabel('Overall accuracy')
 plt.xlabel('No. epoch')
 plt.legend(loc="lower right")
 plt.show()
-

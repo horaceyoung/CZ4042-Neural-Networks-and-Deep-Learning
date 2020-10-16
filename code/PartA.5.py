@@ -20,7 +20,7 @@ epochs = 500
 # Change here for testing different batch size
 batch_size = 32
 num_neurons = 10
-decay = 10e-6
+decay = 1e-6
 seed = 10
 test_size = 0.3
 
@@ -32,11 +32,12 @@ overall_accuracy = {}
 #read train data
 train_input = np.genfromtxt('ctg_data_cleaned.csv', delimiter= ',')
 trainX, train_Y = train_input[1:, :21], train_input[1:,-1].astype(int)
-trainX = scale(trainX, np.min(trainX, axis=0), np.max(trainX, axis=0))
 trainY = train_Y-1
 
-# Split the data randomly into 7:3 training set and test set
+# Split the data randomly into 7:3 training set and test set and scale the input data
 train_X, test_X, train_Y, test_Y = train_test_split(trainX, trainY, test_size = test_size, random_state=1)
+train_X = scale(train_X, np.min(train_X, axis=0), np.max(train_X, axis=0))
+test_X = scale(test_X, np.min(test_X, axis=0), np.max(test_X, axis=0))
 
 # Create the callback function
 class MetricCallback(keras.callbacks.Callback):
