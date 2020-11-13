@@ -1,0 +1,1 @@
+Model from B6_fromB3_(c) used 2991.314649581909 seconds to run, and has evaluation result of Epoch 250, Loss: 0.1480778306722641, Accuracy: 0.9533928632736206, Test Loss: 1.8276777267456055, Test Accuracy: 0.7071428298950195

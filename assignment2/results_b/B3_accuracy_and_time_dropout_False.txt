@@ -1,0 +1,1 @@
+Model from B3 used 2606.2206382751465 seconds to run, and has evaluation result of Epoch 250, Loss: 0.20260114967823029, Accuracy: 0.935535728931427, Test Loss: 1.759973168373108, Test Accuracy: 0.7071428298950195
